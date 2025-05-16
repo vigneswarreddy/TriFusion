@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trifusion System - Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            background: url('loginimg.jpg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            padding: 1.5rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(17, 24, 39, 0.85), rgba(59, 130, 246, 0.65));
+            z-index: 0;
+        }
+        .brief {
+            background: rgba(255, 255, 255, 0.94);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            max-width: 48rem;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
+            z-index: 1;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 2rem;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+            padding: 3rem;
+            max-width: 48rem;
+            width: 100%;
+            backdrop-filter: blur(18px);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            z-index: 1;
+        }
+        .card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.3);
+        }
+        .status {
+            max-height: 14rem;
+            overflow-y: auto;
+            background: rgba(243, 244, 246, 0.97);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            font-size: 0.9rem;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        .hidden {
+            display: none;
+        }
+        .password-strength {
+            height: 0.6rem;
+            border-radius: 0.3rem;
+            margin-top: 0.75rem;
+            transition: background-color 0.3s ease, width 0.3s ease;
+        }
+        .strength-0 { background-color: #dc2626; width: 20%; }
+        .strength-1 { background-color: #f59e0b; width: 40%; }
+        .strength-2 { background-color: #eab308; width: 60%; }
+        .strength-3 { background-color: #22c55e; width: 80%; }
+        .strength-4 { background-color: #10b981; width: 100%; }
+        .input-group {
+            position: relative;
+            margin-bottom: 1.75rem;
+        }
+        .input-group input, .input-group select {
+            transition: all 0.3s ease;
+            border: 2px solid #e5e7eb;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            font-size: 0.95rem;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.25);
+            outline: none;
+        }
+        .input-group label {
+            position: absolute;
+            top: -0.65rem;
+            left: 1rem;
+            background: #ffffff;
+            padding: 0 0.5rem;
+            font-size: 0.8rem;
+            color: #374151;
+            transition: all 0.3s ease;
+        }
+        .input-group input:not(:placeholder-shown) + label,
+        .input-group input:focus + label,
+        .input-group select:not(:placeholder-shown) + label,
+        .input-group select:focus + label {
+            top: -0.65rem;
+            font-size: 0.8rem;
+            color: #2563eb;
+        }
+        .error-text {
+            color: #dc2626;
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            display: none;
+        }
+        button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+        button:hover::after {
+            width: 200%;
+            height: 200%;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .modal.show {
+            opacity: 1;
+        }
+        .modal-content {
+            background: rgba(255, 255, 255, 0.99);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            max-width: 40rem;
+            width: 90%;
+            text-align: center;
+            backdrop-filter: blur(18px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+            transform: scale(0.8);
+            transition: transform 0.4s ease;
+        }
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+        @media (max-width: 640px) {
+            .card, .brief {
+                padding: 1.75rem;
+            }
+            h1 {
+                font-size: 1.85rem;
+            }
+            .modal-content {
+                padding: 1.5rem;
+                width: 95%;
+            }
+            .input-group label {
+                font-size: 0.75rem;
+            }
+        }
+        @media (max-width: 768px) {
+            .card, .brief {
+                max-width: 95%;
+            }
+        }
+        @media (min-width: 1024px) {
+            .card {
+                padding: 3.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="brief">
+        <p class="text-2xl font-bold text-gray-900">Secure Your Files with Trifusion System</p>
+        <p class="text-base text-gray-700 mt-2">Encrypt any file, including audio and video, using Armstrong numbers, RGB transformations, and biometric keys. SHA-256 ensures integrity</p>
+    </div>
+    <div class="card">
+        <h1 class="text-3xl font-bold text-center text-gray-900 mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Trifusion System - Register</h1>
+        <div id="authSection" class="space-y-6">
+            <div class="input-group">
+                <input type="text" id="username" placeholder=" " class="block w-full">
+                <label for="username">Username</label>
+                <p id="usernameError" class="error-text">Username must be 3-20 characters, alphanumeric only</p>
+            </div>
+            <div class="input-group">
+                <input type="email" id="email" placeholder=" " class="block w-full">
+                <label for="email">Email</label>
+                <p id="emailError" class="error-text">Please enter a valid email address</p>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder=" " class="block w-full">
+                <label for="password">Password</label>
+                <div id="passwordStrength" class="password-strength"></div>
+                <p id="passwordError" class="error-text">Password must be at least 8 characters</p>
+            </div>
+            <div class="input-group">
+                <input type="password" id="confirmPassword" placeholder=" " class="block w-full">
+                <label for="confirmPassword">Confirm Password</label>
+                <p id="confirmPasswordError" class="error-text">Passwords do not match</p>
+            </div>
+            <div class="input-group">
+                <select id="securityQuestion" class="block w-full">
+                    <option value="" disabled selected>Select a security question</option>
+                    <option value="birthplace">Where were you born?</option>
+                    <option value="firstpet">What was the name of your first pet?</option>
+                    <option value="school">What was the name of your elementary school?</option>
+                    <option value="food">What is your favorite food?</option>
+                </select>
+                <label for="securityQuestion">Security Question</label>
+                <p id="securityQuestionError" class="error-text">Please select a security question</p>
+            </div>
+            <div class="input-group">
+                <input type="text" id="securityAnswer" placeholder=" " class="block w-full">
+                <label for="securityAnswer">Security Answer</label>
+                <p id="securityAnswerError" class="error-text">Answer must be at least 3 characters</p>
+            </div>
+            <div class="flex items-center">
+                <input type="checkbox" id="terms" class="h-4 w-4 text-blue-600 focus:ring-blue-600 border-gray-300 rounded">
+                <label for="terms" class="ml-2 text-sm text-gray-700">I agree to the <a href="#" class="text-blue-600 hover:underline">Terms and Conditions</a></label>
+            </div>
+            <p id="termsError" class="error-text">You must agree to the terms</p>
+            <button id="registerBtn" class="w-full py-3 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 font-semibold shadow-md relative z-10">Register</button>
+            <p class="text-sm text-center text-gray-700">Already have an account? <a href="login.html" class="text-blue-600 hover:underline">Login here</a></p>
+            <div>
+                <label class="block text-sm font-medium text-gray-800 mb-1.5">Status</label>
+                <div id="status" class="status text-sm text-gray-700"></div>
+            </div>
+        </div>
+    </div>
+    <div id="successModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">Registration Successful!</h2>
+            <p class="text-base text-gray-700 mb-6">Your account has been created! Please login to continue.</p>
+            <button id="closeModalBtn" class="py-2 px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 font-semibold">Go to Login</button>
+        </div>
+    </div>
+
+    <script>
+        // Utility Functions
+        async function sha256(str) {
+            const msgBuffer = new TextEncoder().encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Authentication Manager
+        class AuthManager {
+            constructor() {
+                this.users = JSON.parse(localStorage.getItem('users') || '{}');
+                this.userStatusLogs = {};
+            }
+
+            async register(username, email, password, securityQuestion, securityAnswer) {
+                if (this.users[username] || Object.values(this.users).some(user => user.email === email)) {
+                    throw new Error('Username or email already exists');
+                }
+                const passwordHash = await sha256(password);
+                const answerHash = await sha256(securityAnswer.toLowerCase());
+                this.users[username] = { email, passwordHash, securityQuestion, securityAnswer: answerHash };
+                localStorage.setItem('users', JSON.stringify(this.users));
+                this.userStatusLogs[username] = [];
+                this.currentUser = username;
+                return true;
+            }
+
+            getStatusLog() {
+                return this.currentUser ? this.userStatusLogs[this.currentUser] : [];
+            }
+
+            addStatusMessage(message) {
+                this.userStatusLogs[this.currentUser] = this.userStatusLogs[this.currentUser] || [];
+                this.userStatusLogs[this.currentUser].push(message);
+            }
+        }
+
+        // UI Management
+        const authManager = new AuthManager();
+        const authSection = document.getElementById('authSection');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const securityQuestionSelect = document.getElementById('securityQuestion');
+        const securityAnswerInput = document.getElementById('securityAnswer');
+        const termsCheckbox = document.getElementById('terms');
+        const passwordStrengthDiv = document.getElementById('passwordStrength');
+        const registerBtn = document.getElementById('registerBtn');
+        const statusDiv = document.getElementById('status');
+        const successModal = document.getElementById('successModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const usernameError = document.getElementById('usernameError');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+        const confirmPasswordError = document.getElementById('confirmPasswordError');
+        const securityQuestionError = document.getElementById('securityQuestionError');
+        const securityAnswerError = document.getElementById('securityAnswerError');
+        const termsError = document.getElementById('termsError');
+
+        function updateStatus(message) {
+            authManager.addStatusMessage(message);
+            renderStatusLog();
+        }
+
+        function renderStatusLog() {
+            const messages = authManager.getStatusLog();
+            statusDiv.innerHTML = messages.join('<br>');
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+
+        function updatePasswordStrength() {
+            const password = passwordInput.value;
+            const result = zxcvbn(password);
+            passwordStrengthDiv.className = `password-strength strength-${result.score}`;
+            passwordStrengthDiv.title = `Strength: ${['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'][result.score]}`;
+        }
+
+        function validateForm() {
+            let isValid = true;
+            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            const confirmPassword = confirmPasswordInput.value.trim();
+            const securityQuestion = securityQuestionSelect.value;
+            const securityAnswer = securityAnswerInput.value.trim();
+
+            // Username validation
+            const usernameRegex = /^[a-zA-Z0-9]{3,20}$/;
+            if (!usernameRegex.test(username)) {
+                usernameError.style.display = 'block';
+                isValid = false;
+            } else {
+                usernameError.style.display = 'none';
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                emailError.style.display = 'block';
+                isValid = false;
+            } else {
+                emailError.style.display = 'none';
+            }
+
+            // Password validation
+            if (password.length < 8) {
+                passwordError.style.display = 'block';
+                isValid = false;
+            } else {
+                passwordError.style.display = 'none';
+            }
+
+            // Confirm password validation
+            if (password !== confirmPassword) {
+                confirmPasswordError.style.display = 'block';
+                isValid = false;
+            } else {
+                confirmPasswordError.style.display = 'none';
+            }
+
+            // Security question validation
+            if (!securityQuestion) {
+                securityQuestionError.style.display = 'block';
+                isValid = false;
+            } else {
+                securityQuestionError.style.display = 'none';
+            }
+
+            // Security answer validation
+            if (securityAnswer.length < 3) {
+                securityAnswerError.style.display = 'block';
+                isValid = false;
+            } else {
+                securityAnswerError.style.display = 'none';
+            }
+
+            // Terms validation
+            if (!termsCheckbox.checked) {
+                termsError.style.display = 'block';
+                isValid = false;
+            } else {
+                termsError.style.display = 'none';
+            }
+
+            return isValid;
+        }
+
+        function showModal() {
+            successModal.classList.remove('hidden');
+            successModal.classList.add('show');
+            // Trigger confetti
+            confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function closeModal() {
+            successModal.classList.remove('show');
+            setTimeout(() => successModal.classList.add('hidden'), 400);
+        }
+
+        // Event Listeners
+        passwordInput.addEventListener('input', updatePasswordStrength);
+        usernameInput.addEventListener('input', validateForm);
+        emailInput.addEventListener('input', validateForm);
+        passwordInput.addEventListener('input', validateForm);
+        confirmPasswordInput.addEventListener('input', validateForm);
+        securityQuestionSelect.addEventListener('change', validateForm);
+        securityAnswerInput.addEventListener('input', validateForm);
+        termsCheckbox.addEventListener('change', validateForm);
+
+        registerBtn.addEventListener('click', async () => {
+            if (!validateForm()) {
+                updateStatus('Error: Please fix the form errors.');
+                return;
+            }
+            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            const securityQuestion = securityQuestionSelect.value;
+            const securityAnswer = securityAnswerInput.value.trim();
+            try {
+                await authManager.register(username, email, password, securityQuestion, securityAnswer);
+                updateStatus('Registration successful! Please login.');
+                showModal();
+            } catch (e) {
+                updateStatus(`Registration Error: ${e.message}`);
+            }
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            closeModal();
+            window.location.href = 'login.html';
+        });
+
+        successModal.addEventListener('click', (e) => {
+            if (e.target === successModal) {
+                closeModal();
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>

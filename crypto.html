@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trifusion System - Crypto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            background: url('header.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            padding: 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(17, 24, 39, 0.7), rgba(59, 130, 246, 0.5));
+            z-index: 0;
+        }
+        .brief {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 1rem;
+            padding: 1rem;
+            max-width: 48rem;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(12px);
+            z-index: 1;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            max-width: 48rem;
+            width: 100%;
+            backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            z-index: 1;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+        .status {
+            max-height: 12rem;
+            overflow-y: auto;
+            background: rgba(243, 244, 246, 0.9);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-size: 0.875rem;
+        }
+        .hidden {
+            display: none;
+        }
+        .progress-bar {
+            height: 0.75rem;
+            background-color: #e5e7eb;
+            border-radius: 0.375rem;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #2563eb, #7dd3fc);
+            transition: width 0.3s ease-in-out;
+        }
+        .password-strength {
+            height: 0.5rem;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+            transition: background-color 0.3s ease;
+        }
+        .strength-0 { background-color: #dc2626; }
+        .strength-1 { background-color: #f59e0b; }
+        .strength-2 { background-color: #eab308; }
+        .strength-3 { background-color: #22c55e; }
+        .strength-4 { background-color: #10b981; }
+        input, button {
+            transition: all 0.2s ease;
+        }
+        input:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: #2563eb;
+            border-color: #2563eb;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .radio-label {
+            transition: background-color 0.2s ease;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+        .radio-label:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            max-width: 32rem;
+            width: 90%;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        .modal-content:hover {
+            transform: scale(1.02);
+        }
+        @media (max-width: 640px) {
+            .card, .brief {
+                padding: 1.25rem;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .flex.space-x-4 {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .flex.space-x-4 > * {
+                width: 100%;
+            }
+            .status {
+                max-height: 10rem;
+            }
+            .modal-content {
+                padding: 1rem;
+                width: 95%;
+            }
+        }
+        @media (max-width: 768px) {
+            .card, .brief {
+                max-width: 90%;
+            }
+        }
+        @media (min-width: 1024px) {
+            .card {
+                padding: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="brief">
+        <p class="text-lg font-semibold text-gray-900">Secure Your Files with Trifusion System</p>
+        <p class="text-sm text-gray-700">Encrypt any file, including audio and video, using Armstrong numbers, RGB transformations, and biometric keys. SHA-256 ensures integrity, delivering unbreakable protection.</p>
+    </div>
+    <div class="card">
+        <h1 class="text-3xl font-bold text-center text-gray-900 mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Trifusion System</h1>
+        <div id="cryptoSection" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-800 mb-1.5">Source File</label>
+                <input type="file" id="sourceFile" accept="*/*" class="block w-full text-sm text-gray-600 file:mr-4 file:py-2.5 file:px-5 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 file:transition-colors">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-800 mb-2">Key Generation Method</label>
+                <div class="mt-2 space-y-3">
+                    <label class="flex items-center radio-label"><input type="radio" name="keyMethod" value="password" checked class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-600 border-gray-300"><span class="text-sm text-gray-700">Password Only</span></label>
+                    <label class="flex items-center radio-label"><input type="radio" name="keyMethod" value="biometric" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-600 border-gray-300"><span class="text-sm text-gray-700">Biometric Image Only</span></label>
+                    <label class="flex items-center radio-label"><input type="radio" name="keyMethod" value="hybrid" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-600 border-gray-300"><span class="text-sm text-gray-700">Password + Biometric Image</span></label>
+                </div>
+            </div>
+            <div id="passwordInput" class="space-y-2">
+                <label for="keyInput" class="block text-sm font-medium text-gray-800 mb-1.5">Encryption/Decryption Password</label>
+                <input type="password" id="keyInput" placeholder="Enter your password" class="block w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 bg-gray-50 hover:bg-white text-gray-900">
+                <div id="passwordStrength" class="password-strength"></div>
+            </div>
+            <div id="biometricInput" class="space-y-2 hidden">
+                <label class="block text-sm font-medium text-gray-800 mb-1.5">Biometric Image (e.g., Fingerprint)</label>
+                <input type="file" id="biometricFile" accept="image/*" class="block w-full text-sm text-gray-600 file:mr-4 file:py-2.5 file:px-5 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 file:transition-colors">
+            </div>
+            <div class="flex space-x-4">
+                <button id="encryptBtn" class="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 font-semibold shadow-md">Encrypt</button>
+                <button id="decryptBtn" class="w-full py-3 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 font-semibold shadow-md">Decrypt</button>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-800 mb-1.5">Progress</label>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-800 mb-1.5">Status</label>
+                <div id="status" class="status text-sm text-gray-700"></div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-800 mb-1.5">Integrity Check</label>
+                <div id="integrityStatus" class="mt-1 p-3 bg-gray-100 rounded-lg text-sm text-gray-700"></div>
+            </div>
+            <div id="playbackWarning" class="mt-2 text-sm text-red-600 hidden">
+                Warning: If the decrypted file does not play, ensure you used the correct key or biometric image.
+            </div>
+            <button id="logoutBtn" class="w-full py-3 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 font-semibold shadow-md">Logout</button>
+        </div>
+    </div>
+    <div id="successModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Integrity Check Passed</h2>
+            <p class="text-sm text-gray-700 mb-6">Your decrypted file is valid and matches the original!</p>
+            <button id="closeModalBtn" class="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 font-semibold">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Utility Functions
+        async function sha256(str) {
+            const msgBuffer = new TextEncoder().encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function fileToHash(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function imageToHash(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async () => {
+                    const img = new Image();
+                    img.onload = async () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                        const hash = await sha256(JSON.stringify(Array.from(imageData.data)));
+                        resolve(hash);
+                    };
+                    img.onerror = reject;
+                    img.src = reader.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // MIME Type Mapping for Common Audio/Video Files
+        const mimeTypes = {
+            'mp3': 'audio/mpeg',
+            'wav': 'audio/wav',
+            'ogg': 'audio/ogg',
+            'mp4': 'video/mp4',
+            'avi': 'video/x-msvideo',
+            'mov': 'video/quicktime',
+            'txt': 'text/plain',
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'pdf': 'application/pdf'
+        };
+
+        // Authentication Manager
+        class AuthManager {
+            constructor() {
+                this.users = JSON.parse(localStorage.getItem('users') || '{}');
+                this.currentUser = localStorage.getItem('currentUser');
+                this.userStatusLogs = {};
+                if (this.currentUser && !this.userStatusLogs[this.currentUser]) {
+                    this.userStatusLogs[this.currentUser] = [];
+                }
+            }
+
+            logout() {
+                if (this.currentUser) {
+                    this.userStatusLogs[this.currentUser] = [];
+                    localStorage.removeItem('currentUser');
+                }
+                this.currentUser = null;
+            }
+
+            isAuthenticated() {
+                return !!this.currentUser && !!this.users[this.currentUser];
+            }
+
+            getStatusLog() {
+                return this.currentUser ? this.userStatusLogs[this.currentUser] : [];
+            }
+
+            addStatusMessage(message) {
+                if (this.currentUser) {
+                    this.userStatusLogs[this.currentUser].push(message);
+                }
+            }
+
+            clearStatusLog() {
+                if (this.currentUser) {
+                    this.userStatusLogs[this.currentUser] = [];
+                }
+            }
+        }
+
+        // Dynamic Key Generator
+        class DynamicKeyGenerator {
+            constructor() {
+                this.biometricHash = null;
+            }
+
+            async addBiometricImage(file) {
+                this.biometricHash = await imageToHash(file);
+            }
+
+            clearBiometric() {
+                this.biometricHash = null;
+            }
+
+            async generateKey(password, method) {
+                if (method === 'password') {
+                    if (!password) {
+                        throw new Error('Password required for password-based key');
+                    }
+                    return await sha256(password);
+                } else if (method === 'biometric') {
+                    if (!this.biometricHash) {
+                        throw new Error('Biometric image required for biometric key');
+                    }
+                    return this.biometricHash;
+                } else if (method === 'hybrid') {
+                    if (!password || !this.biometricHash) {
+                        throw new Error('Both password and biometric image required for hybrid key');
+                    }
+                    return await sha256(password + ':' + this.biometricHash);
+                }
+                throw new Error('Invalid key generation method');
+            }
+        }
+
+        // KeyGenerator class
+        class KeyGenerator {
+            static armstrongNumbers = [153, 370, 371, 407];
+            static baseTable = [1234, 1243, 1324, 1342, 1423, 1432, 2134, 2143, 2314, 2341, 2413, 2431, 3124, 3142, 3214, 3241, 3412, 3421, 4123, 4132, 4213, 4231, 4312, 4321];
+
+            constructor(key) {
+                this.key = key;
+                this.numericKey = "";
+            }
+
+            getNumericKey() {
+                if (!this.numericKey) this.generateNumericKey();
+                return this.numericKey;
+            }
+
+            generateNumericKey() {
+                let tot = 0;
+                for (let i = 0; i < this.key.length; i++) {
+                    tot += this.key.charCodeAt(i);
+                }
+                const permutation = KeyGenerator.baseTable[tot % KeyGenerator.baseTable.length];
+                let temp = "";
+                let perm = permutation;
+                while (perm > 0) {
+                    temp = KeyGenerator.armstrongNumbers[(perm % 10) - 1] + temp;
+                    perm = Math.floor(perm / 10);
+                }
+                this.numericKey = temp + tot;
+            }
+        }
+
+        // ByteManager class
+        class ByteManager {
+            static byteToNibble(x) {
+                const arr = new Array(2);
+                arr[0] = (x & 255) >> 4;
+                arr[1] = x & 15;
+                return arr;
+            }
+
+            static nibblesToByte(nibbles) {
+                return ((nibbles[0] & 15) << 4) | (nibbles[1] & 15);
+            }
+        }
+
+        // ColorManager class
+        class ColorManager {
+            constructor(nK) {
+                this.rgb = new Array(3);
+                this.enc_index = -1;
+                this.dec_index = -1;
+                const partB = parseInt(nK.substring(12));
+                this.rgb[0] = (parseInt(nK.substring(0, 4)) + partB) % 256;
+                this.rgb[1] = (parseInt(nK.substring(4, 8)) + partB) % 256;
+                this.rgb[2] = (parseInt(nK.substring(8, 12)) + partB) % 256;
+            }
+
+            encrypt(data) {
+                const nibbles = ByteManager.byteToNibble(data);
+                this.enc_index = (this.enc_index + 1) % this.rgb.length;
+                return (this.rgb[this.enc_index] + nibbles[0] * 16 + nibbles[1]) % 256;
+            }
+
+            decrypt(data) {
+                this.dec_index = (this.dec_index + 1) % this.rgb.length;
+                let temp = (data - this.rgb[this.dec_index] + 256) % 256;
+                const nibbles = new Array(2);
+                nibbles[0] = Math.floor(temp / 16);
+                nibbles[1] = temp % 16;
+                return ByteManager.nibblesToByte(nibbles);
+            }
+        }
+
+        // ArmstrongManager class
+        class ArmstrongManager {
+            constructor(nK) {
+                this.numericKey = nK;
+                this.enc_index = -1;
+                this.dec_index = -1;
+            }
+
+            encrypt(data) {
+                try {
+                    return data ^ this.numericKey.charCodeAt(++this.enc_index);
+                } catch (e) {
+                    this.enc_index = -1;
+                    return data ^ this.numericKey.charCodeAt(++this.enc_index);
+                }
+            }
+
+            decrypt(data) {
+                try {
+                    return data ^ this.numericKey.charCodeAt(++this.dec_index);
+                } catch (e) {
+                    this.dec_index = -1;
+                    return data ^ this.numericKey.charCodeAt(++this.dec_index);
+                }
+            }
+        }
+
+        // Encryptor class
+        class Encryptor {
+            constructor(key) {
+                this.kGen = new KeyGenerator(key);
+            }
+
+            async encrypt(file, filename, progressCallback) {
+                const nK = this.kGen.getNumericKey();
+                const aManager = new ArmstrongManager(nK);
+                const cManager = new ColorManager(nK);
+
+                const arrayBuffer = await file.arrayBuffer();
+                const inputBytes = new Uint8Array(arrayBuffer);
+                const outputBytes = new Uint8Array(inputBytes.length);
+
+                for (let i = 0; i < inputBytes.length; i++) {
+                    if (i % 10000 === 0) {
+                        progressCallback((i / inputBytes.length) * 100);
+                    }
+                    let temp = aManager.encrypt(inputBytes[i] & 0xFF);
+                    temp = cManager.encrypt(temp);
+                    outputBytes[i] = temp & 0xFF;
+                }
+
+                const hash = await fileToHash(file);
+                const hashBytes = new TextEncoder().encode(hash);
+                const output = new Uint8Array(outputBytes.length + hashBytes.length);
+                output.set(outputBytes, 0);
+                output.set(hashBytes, outputBytes.length);
+                return { buffer: output.buffer, mimeType: file.type, originalHash: hash };
+            }
+        }
+
+        // Decryptor class
+        class Decryptor {
+            constructor(key) {
+                this.kGen = new KeyGenerator(key);
+            }
+
+            async decrypt(file, filename, progressCallback) {
+                const arrayBuffer = await file.arrayBuffer();
+                const inputBytes = new Uint8Array(arrayBuffer);
+                if (inputBytes.length < 64) {
+                    throw new Error('File too small to contain integrity hash');
+                }
+                const hashBytes = inputBytes.slice(-64);
+                const cipherBytes = inputBytes.slice(0, -64);
+
+                const nK = this.kGen.getNumericKey();
+                const aManager = new ArmstrongManager(nK);
+                const cManager = new ColorManager(nK);
+
+                const outputBytes = new Uint8Array(cipherBytes.length);
+
+                for (let i = 0; i < cipherBytes.length; i++) {
+                    if (i % 10000 === 0) {
+                        progressCallback((i / cipherBytes.length) * 100);
+                    }
+                    let temp = cManager.decrypt(cipherBytes[i] & 0xFF);
+                    temp = aManager.decrypt(temp);
+                    outputBytes[i] = temp & 0xFF;
+                }
+
+                const originalExtension = filename.replace(/^enc_/, '').replace(/\.trifusion$/, '') || 'decrypted';
+                const extension = originalExtension.split('.').pop().toLowerCase();
+                const mimeType = mimeTypes[extension] || file.type || 'application/octet-stream';
+                const outputBlob = new Blob([outputBytes], { type: mimeType });
+                const calculatedHash = await fileToHash(outputBlob);
+                const originalHash = new TextDecoder().decode(hashBytes);
+                const isValid = calculatedHash === originalHash;
+
+                return { blob: outputBlob, isValid, originalHash, calculatedHash, originalExtension };
+            }
+        }
+
+        // UI Management
+        const authManager = new AuthManager();
+        const dynamicKeyGenerator = new DynamicKeyGenerator();
+        const cryptoSection = document.getElementById('cryptoSection');
+        const sourceFileInput = document.getElementById('sourceFile');
+        const keyInput = document.getElementById('keyInput');
+        const passwordStrengthDiv = document.getElementById('passwordStrength');
+        const keyMethodRadios = document.getElementsByName('keyMethod');
+        const passwordInputDiv = document.getElementById('passwordInput');
+        const biometricInputDiv = document.getElementById('biometricInput');
+        const biometricFileInput = document.getElementById('biometricFile');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const decryptBtn = document.getElementById('decryptBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const progressFill = document.getElementById('progressFill');
+        const statusDiv = document.getElementById('status');
+        const integrityStatusDiv = document.getElementById('integrityStatus');
+        const playbackWarningDiv = document.getElementById('playbackWarning');
+        const successModal = document.getElementById('successModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        // Authentication Check
+        if (!authManager.isAuthenticated()) {
+            window.location.href = 'login.html';
+        } else {
+            authManager.addStatusMessage('Welcome to the Trifusion System!');
+            renderStatusLog();
+        }
+
+        function updateStatus(message) {
+            authManager.addStatusMessage(message);
+            renderStatusLog();
+        }
+
+        function renderStatusLog() {
+            const messages = authManager.getStatusLog();
+            statusDiv.innerHTML = messages.join('<br>');
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+
+        function updateIntegrityStatus(message, isValid, isDecryption) {
+            integrityStatusDiv.innerHTML = message;
+            if (isDecryption) {
+                playbackWarningDiv.classList.toggle('hidden', isValid);
+                if (isValid) {
+                    successModal.classList.remove('hidden');
+                    alert('Integrity Check Passed: The decrypted file is valid!');
+                } else {
+                    alert('Integrity Check Failed: The decrypted file may be corrupted or decrypted with the wrong key.');
+                }
+            } else {
+                playbackWarningDiv.classList.add('hidden');
+            }
+        }
+
+        function closeModal() {
+            successModal.classList.add('hidden');
+        }
+
+        function updateProgress(percent) {
+            progressFill.style.width = `${percent}%`;
+        }
+
+        function resetProgress() {
+            progressFill.style.width = '0%';
+        }
+
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function clearEncryptionInputs() {
+            sourceFileInput.value = '';
+            keyInput.value = '';
+            passwordStrengthDiv.className = 'password-strength';
+            biometricFileInput.value = '';
+            dynamicKeyGenerator.clearBiometric();
+            updateStatus('Encryption inputs cleared for security.');
+        }
+
+        function updatePasswordStrength() {
+            const password = keyInput.value;
+            const result = zxcvbn(password);
+            passwordStrengthDiv.className = `password-strength strength-${result.score}`;
+            passwordStrengthDiv.title = `Strength: ${['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'][result.score]}`;
+        }
+
+        function updateKeyInputs() {
+            const method = Array.from(keyMethodRadios).find(r => r.checked).value;
+            passwordInputDiv.classList.toggle('hidden', method === 'biometric');
+            biometricInputDiv.classList.toggle('hidden', method === 'password');
+            if (method !== 'password' && method !== 'hybrid') {
+                passwordStrengthDiv.className = 'password-strength';
+            }
+        }
+
+        // Event Listeners
+        keyInput.addEventListener('input', updatePasswordStrength);
+
+        keyMethodRadios.forEach(radio => {
+            radio.addEventListener('change', updateKeyInputs);
+        });
+
+        biometricFileInput.addEventListener('change', async () => {
+            const file = biometricFileInput.files[0];
+            if (file) {
+                try {
+                    await dynamicKeyGenerator.addBiometricImage(file);
+                    updateStatus('Biometric image processed for key generation.');
+                } catch (e) {
+                    updateStatus(`Error processing biometric image: ${e.message}`);
+                }
+            }
+        });
+
+        encryptBtn.addEventListener('click', async () => {
+            const file = sourceFileInput.files[0];
+            const password = keyInput.value.trim();
+            const method = Array.from(keyMethodRadios).find(r => r.checked).value;
+
+            if (!file) {
+                updateStatus('Error: Please select a source file.');
+                return;
+            }
+            if (method === 'password' && !password) {
+                updateStatus('Error: Please enter a password.');
+                return;
+            }
+            if (method === 'biometric' && !dynamicKeyGenerator.biometricHash) {
+                updateStatus('Error: Please upload a biometric image.');
+                return;
+            }
+            if (method === 'hybrid' && (!password || !dynamicKeyGenerator.biometricHash)) {
+                updateStatus('Error: Please provide both password and biometric image.');
+                return;
+            }
+
+            try {
+                resetProgress();
+                const key = await dynamicKeyGenerator.generateKey(password, method);
+                updateStatus(`Encrypting ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB, ${file.type})...`);
+                const encryptor = new Encryptor(key);
+                const { buffer, mimeType, originalHash } = await encryptor.encrypt(file, file.name, updateProgress);
+                const outputFilename = `enc_${file.name}.trifusion`;
+                const outputBlob = new Blob([buffer], { type: 'application/octet-stream' });
+                downloadBlob(outputBlob, outputFilename);
+                updateStatus(`Encryption Done! Saved as ${outputFilename}`);
+                updateIntegrityStatus(`Original File Hash: ${originalHash}`, false, false);
+                clearEncryptionInputs();
+            } catch (e) {
+                updateStatus(`Encryption Error: ${e.message}`);
+            } finally {
+                resetProgress();
+            }
+        });
+
+        decryptBtn.addEventListener('click', async () => {
+            const file = sourceFileInput.files[0];
+            const password = keyInput.value.trim();
+            const method = Array.from(keyMethodRadios).find(r => r.checked).value;
+
+            if (!file) {
+                updateStatus('Error: Please select an encrypted file.');
+                return;
+            }
+            if (!file.name.endsWith('.trifusion')) {
+                updateStatus('Error: Please select a .trifusion encrypted file.');
+                return;
+            }
+            if (method === 'password' && !password) {
+                updateStatus('Error: Please enter a password.');
+                return;
+            }
+            if (method === 'biometric' && !dynamicKeyGenerator.biometricHash) {
+                updateStatus('Error: Please upload a biometric image.');
+                return;
+            }
+            if (method === 'hybrid' && (!password || !dynamicKeyGenerator.biometricHash)) {
+                updateStatus('Error: Please provide both password and biometric image.');
+                return;
+            }
+
+            try {
+                resetProgress();
+                const key = await dynamicKeyGenerator.generateKey(password, method);
+                updateStatus(`Decrypting ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB, ${file.type})...`);
+                const encryptedArrayBuffer = await file.arrayBuffer();
+                const decryptor = new Decryptor(key);
+                const { blob, isValid, originalHash, calculatedHash, originalExtension } = await decryptor.decrypt(
+                    new Blob([encryptedArrayBuffer]),
+                    file.name,
+                    updateProgress
+                );
+                const outputFilename = `dec_${originalExtension}`;
+                downloadBlob(blob, outputFilename);
+                updateStatus(`Decryption Done! Saved as ${outputFilename}`);
+                updateIntegrityStatus(
+                    `Integrity Check: ${isValid ? 'Valid' : 'Invalid'}<br>` +
+                    `Original Hash: ${originalHash}<br>` +
+                    `Calculated Hash: ${calculatedHash}`,
+                    isValid,
+                    true
+                );
+            } catch (e) {
+                updateStatus(`Decryption Error: ${e.message}`);
+                playbackWarningDiv.classList.remove('hidden');
+            } finally {
+                resetProgress();
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            authManager.logout();
+            updateStatus('Logged out successfully.');
+            resetProgress();
+            playbackWarningDiv.classList.add('hidden');
+            clearEncryptionInputs();
+            closeModal();
+            window.location.href = 'login.html';
+        });
+
+        closeModalBtn.addEventListener('click', closeModal);
+        successModal.addEventListener('click', (e) => {
+            if (e.target === successModal) {
+                closeModal();
+            }
+        });
+
+        // Initialize UI
+        updateKeyInputs();
+    </script>
+</body>
+</html>
